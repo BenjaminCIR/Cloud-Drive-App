@@ -1,0 +1,28 @@
+{% extends 'polls/base.html' %}
+
+{% block content %}
+<h1 class="title">Vos Fichiers</h1>
+<table class="table is-fullwidth">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Upload Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in files %}
+        <tr>
+            <td>{{ file.name }}</td>
+            <td>{{ file.size }}</td>
+            <td>{{ file.upload_date }}</td>
+            <td>
+                <a class="button is-small is-info" href="#">Download</a>
+                <a class="button is-small is-danger" href="#">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

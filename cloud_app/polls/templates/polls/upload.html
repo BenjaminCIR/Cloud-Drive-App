@@ -1,0 +1,19 @@
+{% extends 'polls/base.html' %}
+
+{% block content %}
+<h1 class="title">Download file</h1>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="file has-name is-fullwidth">
+        <label class="file-label">
+            <input class="file-input" type="file" name="file">
+            <span class="file-cta">
+                <span class="icon"><i class="fas fa-upload"></i></span>
+                <span>Select a file</span>
+            </span>
+            <span class="file-name">No file selected</span>
+        </label>
+    </div>
+    <button type="submit" class="button is-primary mt-4">Upload</button>
+</form>
+{% endblock %}

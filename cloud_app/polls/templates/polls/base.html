@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Drive App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <section class="section">
+        <div class="container">
+            <!-- Navbar -->
+            <nav class="navbar" role="navigation" aria-label="main navigation">
+                <div class="navbar-brand">
+                    <a class="navbar-item" href="{% url 'home' %}">
+                        <strong>FileDrive</strong>
+                    </a>
+                </div>
+                <div class="navbar-menu">
+                    <div class="navbar-end">
+                            <span class="navbar-item">Welcome, {{ user.username }}</span>
+                            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button class="button is-light" type="submit">Logout</button>
+                            </form>
+                    </div>
+                </div>
+            </nav>
+
+            
+            <div class="columns">
+                <div class="column is-one-quarter">
+                    <aside class="menu">
+                        <p class="menu-label">Navigation</p>
+                        <ul class="menu-list">
+                            <li><a href="{% url 'home' %}">File</a></li>
+                            <li><a href="{% url 'upload' %}">Upload</a></li>
+                            <li><a href="{% url 'statistics' %}">Statistics</a></li>
+                        </ul>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+        <a href="{% url 'login' %}" class="navbar-item">Login</a>
+        <a href="{% url 'signup' %}" class="navbar-item">Sign Up</a>
+    {% endif %}
+    <div>
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>
