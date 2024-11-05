@@ -6,6 +6,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError
 from django.db.models.functions import TruncMonth
 from django.db.models import Count, Sum
+from django.shortcuts import get_object_or_404
 from .forms import FileUploadForm
 from .models import File
 import json
@@ -14,8 +15,11 @@ import json
 
 @login_required
 def home(request):
-    files = []
-    return render(request, 'polls/home.html', {'files': files})
+    if request.user.is_authenticated:
+        user_files = File.objects.filter(user=request.user)
+    else:
+        user_files = None
+    return render(request, 'polls/home.html', {'user_files': user_files})
 
 def success(request):
     return render(request, 'polls/success.html')
@@ -58,6 +62,17 @@ def upload(request):
         form = FileUploadForm()
 
     return render(request, 'polls/upload.html', {'form': form})
+
+
+def delete_file(request, file_id):
+    file_to_delete = get_object_or_404(File, id=file_id, user=request.user)
+    
+    if file_to_delete.upload:
+        file_to_delete.upload.delete(save=False)
+    
+    file_to_delete.delete()
+    
+    return redirect('./../../')
 
 
 def statistics(request):

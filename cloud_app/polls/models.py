@@ -30,6 +30,7 @@ def validate_file_size(file):
     
 def user_directory_path(instance, filename):
     return f'uploads/{instance.user.username}/{filename}'
+
     
 class File(models.Model):
     name = models.CharField(max_length=255)
