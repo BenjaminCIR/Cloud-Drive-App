@@ -6,6 +6,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError
 from django.db.models.functions import TruncMonth
 from django.db.models import Count, Sum
+from .forms import FileUploadForm
 from .models import File
 import json
 
@@ -15,6 +16,9 @@ import json
 def home(request):
     files = []
     return render(request, 'polls/home.html', {'files': files})
+
+def success(request):
+    return render(request, 'polls/success.html')
 
 
 def signup(request):
@@ -31,13 +35,29 @@ def signup(request):
 
 def upload(request):
     if request.method == 'POST':
-        if 'file' in request.FILES:
-            uploaded_file = request.FILES['file']
-            return render(request, 'polls/success.html')
-        else:
-            error_message = "Aucun fichier n'a été sélectionné."
-            return render(request, 'polls/upload.html', {'error_message': error_message})
-    return render(request, 'polls/upload.html')
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            new_file_size = request.FILES['upload'].size
+            max_file_size = 40 * 1024 * 1024  # 40 Mo limit per file
+            max_user_storage = 100 * 1024 * 1024  # 100 Mo limit per user
+            
+            user_storage_usage = File.objects.filter(user=request.user).aggregate(total_size=Sum('size'))['total_size'] or 0
+            
+            if new_file_size > max_file_size:
+                form.add_error('upload', "Le fichier dépasse la taille maximale de 40 Mo.")
+            elif user_storage_usage + new_file_size > max_user_storage:
+                form.add_error('upload', "La limite totale de stockage de 100 Mo est dépassée.")
+            else:
+                file_instance = form.save(commit=False)
+                file_instance.user = request.user
+                file_instance.name = request.FILES['upload'].name
+                file_instance.size = new_file_size
+                file_instance.save()
+                return redirect('./../success')
+    else:
+        form = FileUploadForm()
+
+    return render(request, 'polls/upload.html', {'form': form})
 
 
 def statistics(request):
