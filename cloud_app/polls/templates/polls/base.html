@@ -6,6 +6,43 @@
     <title>Cloud Drive App</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .button.is-animated {
+            position: relative;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .button.is-animated:hover {
+            transform: scale(1.1) rotate(-2deg); /* Légère rotation et agrandissement */
+            background-color: #ffc3a0;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+        }
+        .navbar-menu {
+            display: flex;
+            justify-content: center;
+        }
+        .navbar-item.button {
+            margin: 0 15px; /* Espacement entre les boutons */
+        }
+        /* Animation de "pulse" pour les liens */
+        .navbar-item.button:hover {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(50, 115, 220, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(50, 115, 220, 0.7);
+            }
+        }
+    </style>
 </head>
 <body>
     {% if user.is_authenticated %}
@@ -23,30 +60,33 @@
                             <span class="navbar-item">Welcome, {{ user.username }}</span>
                             <form action="{% url 'logout' %}" method="post" style="display: inline;">
                                 {% csrf_token %}
-                                <button class="button is-light" type="submit">Logout</button>
+                                <button class="button is-light is-primary is-animated" style="margin-right: 15px; margin-top: 5px;" type="submit">Logout</button>
                             </form>
                     </div>
                 </div>
             </nav>
 
             
-            <div class="columns">
+        <!-- <div class="columns">
                 <div class="column is-one-quarter">
                     <aside class="menu">
-                        <p class="menu-label">Navigation</p>
+                        <p class="menu-label" style="margin-top: 20px;">Navigation</p>
                         <ul class="menu-list">
                             <li><a href="{% url 'home' %}">File</a></li>
-                            <li><a href="{% url 'upload_file' %}">Upload</a></li>
                             <li><a href="{% url 'statistics' %}">Statistics</a></li>
                         </ul>
                     </aside>
                 </div>
             </div>
-        </div>
+        </div> -->
     </section>
     {% else %}
-        <a href="{% url 'login' %}" class="navbar-item">Login</a>
-        <a href="{% url 'signup' %}" class="navbar-item">Sign Up</a>
+    <nav class="navbar mb-5">
+        <div class="navbar-menu">
+            <a href="{% url 'login' %}" class="navbar-item button is-primary is-animated">Login</a>
+            <a href="{% url 'signup' %}" class="navbar-item button is-link is-animated">Sign Up</a>
+        </div>
+    </nav>
     {% endif %}
     <div>
         {% block content %}

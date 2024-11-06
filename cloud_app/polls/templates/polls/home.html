@@ -1,91 +1,112 @@
 {% extends 'polls/base.html' %}
 
 {% block content %}
-<h1 class="title">Vos Fichiers</h1>
+<div class="container" style="margin: 0 auto; max-width: 900px;">
 
-<form action="{% url 'create_folder' %}" method="post" style="margin-bottom: 20px;">
-    {% csrf_token %}
-    <div class="field">
-        <label class="label" for="folder_name">Nom du dossier :</label>
-        <div class="control">
-            <input class="input" type="text" id="folder_name" name="folder_name" placeholder="Entrez le nom du dossier" required>
+    <h1 class="title has-text-centered">Your Files</h1>
+    <h2 class="subtitle has-text-centered">{{ current_path }}</h2>
+
+    <div class="box">
+        <!-- Formulaire de création de dossier -->
+        <form action="{% url 'create_folder' %}" method="post" style="margin-bottom: 20px;">
+            {% csrf_token %}
+            <div class="field">
+                <label class="label" for="folder_name">Folder name :</label>
+                <div class="control">
+                    <input class="input" type="text" id="folder_name" name="folder_name" placeholder="Enter the folder name" required>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">Create folder</button>
+            </div>
+        </form>
+
+        <!-- Formulaire d'upload de fichier -->
+        <form action="{% url 'upload_file' %}?path={{ current_path }}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="field">
+                <label class="label" for="upload">File to upload :</label>
+                <div class="control">
+                    <input class="input" type="file" id="upload" name="upload" placeholder="Select a file" required>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">Upload</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Messages d'erreur -->
+    {% if form.errors %}
+        <div class="notification is-danger">
+            {% for field, errors in form.errors.items %}
+                <p><strong>{{ field }}:</strong> {{ errors }}</p>
+            {% endfor %}
         </div>
-    </div>
-    <div class="control">
-        <button class="button is-primary" type="submit">Créer le dossier</button>
-    </div>
-</form>
-<form action="{% url 'upload_file' %}?path={{ current_path }}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="field">
-        <label class="label" for="upload">Fichier à uploader :</label>
-        <div class="control">
-            <input class="input" type="file" id="upload" name="upload" required>
-        </div>
-    </div>
-    <div class="control">
-        <button class="button is-primary" type="submit">Uploader</button>
-    </div>
-</form>
+    {% endif %}
 
+    <!-- Navigation vers le répertoire parent -->
+    {% if current_path %}
+        {% with current_path|cut:"/" as path_parts %}
+            {% if path_parts|length > 0 %}
+                <a class="button is-link" href="?path={{ previous_path }}">Back</a>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
 
-{% if form.errors %}
-    <div class="error-messages">
-        {% for field, errors in form.errors.items %}
-            <p><strong>{{ field }}:</strong> {{ errors }}</p>
+    <!-- Liste des dossiers -->
+    <ul style="margin-top: 20px;">
+        {% for folder in folders %}
+            <li class="box" style="margin-bottom: 10px;">
+                <div class="columns is-vcentered">
+                    <!-- Nom du dossier avec lien -->
+                    <div class="column is-half">
+                        <a href="?path={{ folder.path }}" class="has-text-weight-bold">{{ folder.name }}</a>
+                    </div>
+                    
+                    <!-- Boutons d'action alignés -->
+                    <div class="column has-text-right">
+                        <a class="button is-small is-danger" href="{% url 'delete_folder' %}?path={{ folder.path }}" onclick="return confirm('Are you sure you want to delete this folder?');">Delete</a>
+                        <a class="button is-small is-info" href="{% url 'rename_folder' %}?path={{ folder.path }}&current_path={{ current_path }}">Rename</a>
+                        <a class="button is-small is-warning" href="{% url 'choose_folder' %}?folder_path={{ folder.path }}&type=folder">Move</a>
+                    </div>
+                </div>
+            </li>
+        {% empty %}
+            <li>No folder found</li>
         {% endfor %}
-    </div>
-{% endif %}
+    </ul>
 
-{% if current_path %}
-    {% with current_path|cut:"/" as path_parts %}
-        {% if path_parts|length > 0 %}
-            <a href="?path={{ previous_path }}">Retour</a>
-        {% endif %}
-    {% endwith %}
-{% endif %}
 
-<ul>
-    {% for folder in folders %}
-        <li>
-            <a href="?path={{ folder.path }}">{{ folder.name }}</a>
-            <a class="button is-small is-danger" href="{% url 'delete_folder' %}?path={{ file.path }}&current_path={{ current_path }}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce dossier ?');">Delete</a>
-            <a href="{% url 'rename_folder' %}?path={{ folder.path }}&current_path={{ current_path }}" class="button is-small is-info">Renommer</a>
-            <a href="{% url 'choose_folder' %}?folder_path={{ folder.path }}&type=folder" class="button is-small is-warning">Déplacer</a>
-        </li>
-    {% empty %}
-        <li>Aucun dossier trouvé.</li>
-    {% endfor %}
-</ul>
-
- {% if files %}
- <table class="table is-fullwidth">
-     <thead>
-         <tr>
-             <th>Nom</th>
-             <th>Taille</th>
-             <th>Date d'upload</th>
-             <th>Actions</th>
-         </tr>
-     </thead>
-     <tbody>
-         {% for file in files %}
-         <tr>
-             <td>{{ file.name }}</td>
-             <td>{{ file.size }} octets</td>
-             <td>{{ file.upload_date }}</td>
-             <td>
-                <a class="button is-small is-info" href="/uploads/{{ file.path }}" download>Télécharger</a>
-                 <a class="button is-small is-danger" href="{% url 'delete_file' %}?path={{ file.path }}&current_path={{ current_path }}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">Delete</a>
-                 <a href="{% url 'rename_file' %}?path={{ file.path }}&current_path={{ current_path }}" class="button is-small is-info">Renommer</a>
-                 <a href="{% url 'choose_folder' %}?file_path={{ file.path }}&type=file" class="button is-small is-warning">Déplacer</a>
-             </td>
-         </tr>
-         {% endfor %}
-     </tbody>
- </table>
-{% else %}
- <p>Aucun fichier trouvé dans ce dossier.</p>
-{% endif %}
+    <!-- Tableau des fichiers -->
+    {% if files %}
+        <table class="table is-fullwidth" style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Upload date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                    <tr>
+                        <td> {{ file.name|slice:":20" }}{% if file.name|length > 20 %}...{% endif %} </td>
+                        <td>{{ file.size }} octets</td>
+                        <td>{{ file.upload_date }}</td>
+                        <td>
+                            <a class="button is-small is-info" href="/uploads/{{ file.path }}" download>Download</a>
+                            <a class="button is-small is-danger" href="{% url 'delete_file' %}?path={{ file.path }}" onclick="return confirm('Are you sure you want to delete this file?');">Delete</a>
+                            <a href="{% url 'rename_file' %}?path={{ file.path }}&current_path={{ current_path }}" class="button is-small is-info">Rename</a>
+                            <a href="{% url 'choose_folder' %}?file_path={{ file.path }}&type=file" class="button is-small is-warning">Move</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="has-text-centered">No file found in this folder</p>
+    {% endif %}
 </div>
 {% endblock %}

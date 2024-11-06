@@ -1,90 +1,80 @@
 {% extends 'polls/base.html' %}
 
 {% block content %}
-<h1 class="title">Storage statistcs</h1>
+<h1 class="title">Storage Statistics</h1>
 
-<h2 class="subtitle">Total storage usage</h2>
-<p><strong>Total :</strong> {{ total_storage_usage|floatformat:2 }} octets</p>
+<h2 class="subtitle">Total Storage Usage</h2>
+<p><strong>Total:</strong> {{ total_storage_usage|floatformat:2 }} octets</p>
 
-<h2 class="subtitle">Distribution by file type</h2>
-<table class="table is-fullwidth">
-    <thead>
-        <tr>
-            <th>File type</th>
-            <th>File number</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in file_count_by_type %}
-        <tr>
-            <td>{{ item.file }}</td>
-            <td>{{ item.count }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="columns is-desktop">
+    <!-- Graphique en donut pour le nombre de fichiers par type -->
+    <div class="column is-half">
+        <div class="card has-background-link-light" 
+             data-file-type-labels="{{ file_count_by_type.keys|join:',' }}" 
+             data-file-type-counts="{{ file_count_by_type.values|join:',' }}">
+            <header class="card-header has-background-link">
+                <p class="card-header-title has-text-white">Nombre de fichiers par type</p>
+            </header>
+            <div class="card-content">
+                <canvas id="fileTypeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
 
-<h2 class="subtitle">Storage usage by month</h2>
-<table class="table is-fullwidth">
-    <thead>
-        <tr>
-            <th>Month</th>
-            <th>Storage Usage (octets)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in storage_usage_by_month %}
-        <tr>
-            <td>{{ item.month|date:"F Y" }}</td>
-            <td>{{ item.total_size }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Graphique en barres pour l'utilisation du stockage par mois -->
+    <div class="column is-half">
+        <div class="card has-background-link-light" 
+             data-storage-labels="{{ storage_usage_by_month.keys|join:',' }}" 
+             data-storage-data="{{ storage_usage_by_month.values|join:',' }}">
+            <header class="card-header has-background-link">
+                <p class="card-header-title has-text-white">Utilisation du stockage par mois</p>
+            </header>
+            <div class="card-content">
+                <canvas id="storageUsageChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-<canvas id="fileTypeChart" width="400" height="200"></canvas>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var fileTypeData = JSON.parse(document.getElementById('file-type-data').textContent);
-        var fileTypeLabels = fileTypeData.map(item => item.file_type);
-        var fileTypeCounts = fileTypeData.map(item => item.count);
+    // Récupération des données de types de fichiers et de stockage depuis les attributs data-* de l'HTML
+    const fileTypeElement = document.querySelector('.column.is-half[data-file-type-labels]');
+    const fileTypeLabels = fileTypeElement.dataset.fileTypeLabels.split(',');
+    const fileTypeCounts = fileTypeElement.dataset.fileTypeCounts.split(',').map(Number);
 
-        var ctx = document.getElementById('fileTypeChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: fileTypeLabels,
-                datasets: [{
-                    label: 'Nombre de fichiers',
-                    data: fileTypeCounts,
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-                }]
-            },
-        });
+    const storageElement = document.querySelector('.column.is-half[data-storage-labels]');
+    const storageLabels = storageElement.dataset.storageLabels.split(',');
+    const storageData = storageElement.dataset.storageData.split(',').map(Number);
+    
+    // Donut chart pour le nombre de fichiers par type
+    const ctx = document.getElementById('fileTypeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: fileTypeLabels,
+            datasets: [{
+                label: 'Nombre de fichiers',
+                data: fileTypeCounts,
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+            }]
+        },
+    });
+
+    // Bar chart pour l'utilisation du stockage par mois
+    const ctx2 = document.getElementById('storageUsageChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: storageLabels,
+            datasets: [{
+                label: 'Utilisation de stockage (octets)',
+                data: storageData,
+                backgroundColor: '#36A2EB',
+            }]
+        },
     });
 </script>
-
-<canvas id="storageUsageChart" width="400" height="200"></canvas>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var storageUsageData = JSON.parse(document.getElementById('storage-usage-data').textContent);
-        var storageLabels = storageUsageData.map(item => item.month);
-        var storageData = storageUsageData.map(item => item.total_size);
-
-        var ctx2 = document.getElementById('storageUsageChart').getContext('2d');
-        new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: storageLabels,
-                datasets: [{
-                    label: 'Utilisation de stockage (octets)',
-                    data: storageData,
-                    backgroundColor: '#36A2EB',
-                }]
-            },
-        });
-    });
-</script>
-
-
 {% endblock %}

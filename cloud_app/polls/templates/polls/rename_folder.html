@@ -1,20 +1,27 @@
 {% extends 'polls/base.html' %}
 
 {% block content %}
-<h1>Renommer le dossier</h1>
+<div class="container" style="max-width: 900px; margin: 0 auto;">
+    <h1 class="title has-text-centered">Rename Folder</h1>
 
-<form action="" method="post">
-    {% csrf_token %}
-    <div class="field">
-        <label class="label" for="new_name">Nouveau nom :</label>
-        <div class="control">
-            <input class="input" type="text" id="new_name" name="new_name" placeholder="{{ old_name }}" required>
-        </div>
-    </div>
-    <div class="control">
-        <button class="button is-primary" type="submit">Renommer</button>
-    </div>
-</form>
+    <div class="box">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="field">
+                <label class="label" for="new_name">New name:</label>
+                <div class="control">
+                    <input class="input" type="text" id="new_name" name="new_name" placeholder="{{ old_name }}" required>
+                </div>
+            </div>
 
-<a href="{% url 'home' %}?path={{ current_path }}">Retour</a>
+            <div class="control">
+                <button class="button is-primary is-fullwidth" type="submit">Rename</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="has-text-centered" style="margin-top: 20px;">
+        <a href="{% url 'home' %}?path={{ current_path }}" class="button is-link is-light">Back</a>
+    </div>
+</div>
 {% endblock %}

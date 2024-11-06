@@ -1,10 +1,145 @@
 {% extends 'polls/base.html' %}
 
+{% block title %}Sign Up{% endblock %}
+
 {% block content %}
-  <h2>Sign Up</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign Up</button>
-  </form>
+<div class="card animated-card" style="border: 2px solid black; background-color: #f5f5dc; text-align: center; max-width: 600px; margin: auto; padding: 40px;">
+    <div class="card-header">
+        <h2 class="card-title mb-0 animated-title">Sign Up</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="field mb-4">
+                <label class="label">Username</label>
+                <div class="control">
+                    <input type="text" name="username" class="input is-large" placeholder="Enter a username" required>
+                </div>
+            </div>
+            <div class="field mb-4">
+                <label class="label">Password</label>
+                <div class="control">
+                    <input type="password" name="password1" class="input is-large" placeholder="Enter a password" required>
+                </div>
+            </div>
+            <div class="field mb-4">
+                <label class="label">Confirm Password</label>
+                <div class="control">
+                    <input type="password" name="password2" class="input is-large" placeholder="Confirm your password" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="button is-primary is-small is-animated is-fullwidth animated-button mt-3">Sign Up</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <small>Already have an account? <a href="{% url 'login' %}" class="animated-link">Log in</a></small>
+    </div>
+</div>
+
+<style>
+    /* Animations de la carte */
+    .animated-card {
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+    }
+    .animated-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Animation et effet du titre */
+    .animated-title {
+        color: #3273dc;
+        text-shadow: 0 0 8px rgba(50, 115, 221, 0.8);
+        animation: neonText 1.5s ease infinite, moveText 2s linear infinite;
+        text-align: center; /* Centrer le texte */
+    }
+    @keyframes neonText {
+        0%, 100% {
+            color: #3273dc;
+            text-shadow: 0 0 8px #3273dc, 0 0 16px #3273dc, 0 0 24px #ff99cc, 0 0 32px #ff99cc;
+        }
+        50% {
+            color: #ff99cc;
+            text-shadow: 0 0 8px #ff99cc, 0 0 16px #ff99cc, 0 0 24px #3273dc, 0 0 32px #3273dc;
+        }
+    }
+
+    @keyframes moveText {
+        0%, 100% {
+            transform: translateX(-20px);
+        }
+        50% {
+            transform: translateX(20px);
+        }
+    }
+
+    /* Animation des boutons */
+    .animated-button {
+        position: relative;
+        overflow: hidden;
+        font-size: 1.2em; /* Taille du texte dans le bouton */
+        color: white;
+        transition: background-color 0.3s ease;
+    }
+    .animated-button:hover {
+        background-color: #5cb85c;
+    }
+    .animated-button::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 200%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: skewX(-20deg);
+        transition: all 0.4s ease;
+    }
+    .animated-button:hover::after {
+        left: 100%;
+    }
+
+    /* Animation du lien */
+    .animated-link {
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .animated-link:hover {
+        color: #ff99cc;
+        text-shadow: 0 0 5px rgba(255, 153, 204, 0.8);
+    }
+
+    /* Style des champs de saisie */
+    .input.is-large {
+        font-size: 1.25em;
+        height: 50px;
+    }
+
+    /* Bouton "Sign Up" plus petit mais toujours fluide */
+    .button.is-small {
+        font-size: 1.1em; /* RÃ©duit la taille du bouton */
+        padding: 10px 20px;
+    }
+
+    /* Centrage vertical du titre "Sign Up" */
+    .card-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;
+        margin-bottom: 10px;
+    }
+
+    /* Animation de transformation et d'échelle des boutons */
+    .button.is-animated {
+        position: relative;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .button.is-animated:hover {
+        transform: scale(1.1) rotate(-2deg); /* Légère rotation et agrandissement */
+        background-color: #ffc3a0;
+    }
+</style>
 {% endblock %}

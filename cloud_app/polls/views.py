@@ -12,11 +12,22 @@ from django.conf import settings
 from .forms import FileUploadForm, RenameFileForm
 from django.http import FileResponse, Http404, HttpResponse
 from .models import File
-import json
 import os
 import shutil
+from datetime import datetime
+from collections import defaultdict
 
 # Create your views here.
+def signup_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    return render(request, 'polls/signup.html', {'form': form})
 
 @login_required
 def home(request):
@@ -47,9 +58,10 @@ def home(request):
                     'name': item,
                     'path': item_path,
                     'size': os.path.getsize(item_path),
-                    'upload_date': os.path.getctime(item_path),
+                    'upload_date': datetime.fromtimestamp(os.path.getctime(item_path)).strftime('%Y-%m-%d %H:%M:%S'),
                 })
 
+    print(f"Current path: {current_path}")
     return render(request, 'polls/home.html', {
         'folders': folders,
         'files': files,
@@ -219,9 +231,13 @@ def move_file(request):
     if request.method == "POST":
         file_path = request.POST.get('path')
         target_folder = request.POST.get('target_folder')
+        print(target_folder)
+        print(target_folder)
+        print(target_folder)
+        print(target_folder)
         
         # Validation des chemins
-        if not file_path or not target_folder:
+        if not file_path or target_folder==None:
             return HttpResponse("Paramètres manquants", status=400)
 
         current_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
@@ -240,27 +256,38 @@ def move_file(request):
         return HttpResponse("Méthode non autorisée", status=405)
 
 
+
 def statistics(request):
-    file_count_by_type = File.objects.values('file').annotate(count=Count('id'))
-    file_count_by_type = list(file_count_by_type)
+    # Dossier de stockage des fichiers (à adapter selon votre structure)
+    storage_dir = os.path.join(settings.BASE_DIR, 'storage_root')
+    
+    # Initialisation des compteurs et données
+    file_count_by_type = defaultdict(int)
+    storage_usage_by_month = defaultdict(int)
 
-    storage_usage_by_month = (
-        File.objects
-        .annotate(month=TruncMonth('upload_date'))
-        .values('month')
-        .annotate(total_size=Sum('size'))
-        .order_by('month')
-    )
-    storage_usage_by_month = list(storage_usage_by_month)
+    # Parcours des fichiers
+    for root, _, files in os.walk(storage_dir):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            
+            # Comptage par type de fichier
+            file_ext = os.path.splitext(file_name)[1].lower()  # Récupère l'extension en minuscule
+            file_count_by_type[file_ext] += 1
 
-    total_storage_usage = File.objects.aggregate(total_size=Sum('size'))['total_size'] or 0
+            # Calcul de l'utilisation par mois
+            file_size = os.path.getsize(file_path)
+            creation_time = datetime.fromtimestamp(os.path.getctime(file_path))
+            month_key = creation_time.strftime('%Y-%m')  # Format Année-Mois
+            storage_usage_by_month[month_key] += file_size
 
-    context = {
-        'file_count_by_type': json.dumps(file_count_by_type),
-        'storage_usage_by_month': json.dumps(storage_usage_by_month),
-        'total_storage_usage': total_storage_usage,
-    }
-    return render(request, 'polls/statistics.html', context)
+    # Préparation des données pour le template
+    file_count_by_type = dict(file_count_by_type)
+    storage_usage_by_month = dict(sorted(storage_usage_by_month.items()))  # Trie par date
+
+    return render(request, 'polls/statistics.html', {
+        'file_count_by_type': file_count_by_type,
+        'storage_usage_by_month': storage_usage_by_month,
+    })
 
 
 def create_folder(request):
@@ -282,9 +309,10 @@ def create_folder(request):
 
 def delete_folder(request):
     folder_path = request.GET.get('path')
+    print(f"Chemin du dossier : {folder_path}")
     current_path = request.GET.get('current_path', '')
     base_path = os.path.join('uploads', request.user.username, folder_path)
-
+    
     if os.path.exists(base_path):
         shutil.rmtree(base_path)
         print(f"Dossier et tout son contenu supprimé : {base_path}")
@@ -338,7 +366,7 @@ def move_folder(request):
         print(f"Chemin du fichier : {folder_path}")
         print(f"Répertoire de destination : {target_folder}")
 
-        if not folder_path or not target_folder:
+        if not folder_path or target_folder==None:
             return HttpResponse("Paramètres manquants", status=400)
 
         # Obtenez le chemin absolu des dossiers
@@ -358,7 +386,8 @@ def move_folder(request):
         # Déplacer le dossier et son contenu
         try:
             shutil.move(current_folder_path, os.path.join(target_folder_path, os.path.basename(folder_path)))
-            return redirect(f'/polls/?path={target_folder}')  # Rediriger vers le dossier cible après le déplacement
+            redirect_target = (target_folder.split('\\'))[len((target_folder.split('\\'))) - 1]
+            return redirect(f'/polls/?path={redirect_target}')  # Rediriger vers le dossier cible après le déplacement
         except Exception as e:
             return HttpResponse(f"Erreur lors du déplacement du dossier: {str(e)}", status=500)
     
@@ -375,6 +404,9 @@ def choose_folder(request):
     print(f"Chemin du dossier : {folder_path}")
 
     if move_type == 'file' and file_path:
+        parent_path = os.path.dirname(file_path).split('\\')
+        parent_folder_name = parent_path[len(parent_path) - 1]
+        print(f"Nom du dossier parent : {parent_folder_name}")
         file_name = os.path.basename(file_path)
         base_path = os.path.join('uploads', request.user.username)
         folders = []
@@ -382,9 +414,10 @@ def choose_folder(request):
         # Parcours des dossiers disponibles
         for root, dirs, _ in os.walk(base_path):
             for d in dirs:
-                target_folder_path = os.path.join(root, d)
-                relative_folder_path = os.path.relpath(target_folder_path, base_path)
-                folders.append({'name': d, 'path': relative_folder_path})
+                if(d != parent_folder_name):
+                    target_folder_path = os.path.join(root, d)
+                    relative_folder_path = os.path.relpath(target_folder_path, base_path)
+                    folders.append({'name': d, 'path': relative_folder_path})
 
         return render(request, 'polls/choose_folder.html', {
             'path': file_path,
@@ -395,6 +428,9 @@ def choose_folder(request):
         })
 
     if move_type == 'folder' and folder_path:
+        parent_path = os.path.dirname(folder_path).split('\\')
+        parent_folder_name = parent_path[len(parent_path) - 1]
+        print(f"Nom du dossier parent : {parent_folder_name}")
         folder_name = os.path.basename(folder_path)
         print(f"Nom du dossier : {folder_name}")
         print(f"Chemin du dossier : {folder_path}")
@@ -404,11 +440,16 @@ def choose_folder(request):
         # Parcours des dossiers disponibles
         for root, dirs, _ in os.walk(base_path):
             for d in dirs:
-                print(f"Répertoire trouvé : {d}")
-                if(d != folder_name):
-                    target_folder_path = os.path.join(root, d)
-                    relative_folder_path = os.path.relpath(target_folder_path, base_path)
-                    folders.append({'name': d, 'path': relative_folder_path})
+                print(f"1" + base_path)
+                print(f"oui" + os.path.basename(folder_path))
+                print(f"2" + os.path.join(base_path, os.path.basename(folder_path)))
+                #is_child = target_folder_path.startswith(os.path.join(base_path, os.path.basename(folder_path)))
+                #print(f"Chemin du dossier cible : {is_child}")
+                if(d != folder_name and d != parent_folder_name):
+                        
+                        target_folder_path = os.path.join(root, d)
+                        relative_folder_path = os.path.relpath(target_folder_path, base_path)
+                        folders.append({'name': d, 'path': relative_folder_path})
 
         return render(request, 'polls/choose_folder.html', {
             'path': folder_path,

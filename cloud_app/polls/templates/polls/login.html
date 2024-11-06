@@ -1,10 +1,148 @@
 {% extends 'polls/base.html' %}
 
+{% block title %}Login{% endblock %}
+
 {% block content %}
-  <h2>Login</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form>
+<div class="card animated-card" style="border: 2px solid black; background-color: #f5f5dc; text-align: center; max-width: 600px; margin: auto; padding: 40px;">
+    <div class="card-header is-centered">
+        <h2 class="card-title mb-0 animated-title">Login</h2>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="field mb-4">
+                <label class="label">Username</label>
+                <div class="control">
+                    <input type="text" name="username" class="input is-large" placeholder="Enter your username" required>
+                </div>
+            </div>
+            <div class="field mb-4">
+                <label class="label">Password</label>
+                <div class="control">
+                    <input type="password" name="password" class="input is-large" placeholder="Enter your password" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="button is-primary is-small is-animated is-fullwidth animated-login-button mt-3">Login</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <small>Don't have an account? <a href="{% url 'signup' %}" class="animated-link">Sign Up</a></small>
+    </div>
+</div>
+
+<style>
+    /* Police personnalisée pour toute la carte */
+    body {
+        font-family: 'Arial', sans-serif; /* Remplacez par une autre police si désiré */
+    }
+
+    /* Animation de la carte */
+    .animated-card {
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .animated-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Centrage du titre "Log In" */
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px; /* Ajustement de la hauteur pour centrer verticalement */
+        margin-bottom: 10px;
+    }
+
+    /* Animation du titre */
+    .animated-title {
+        animation: fadeIn 1s ease-in-out, move 2s ease-in-out infinite alternate, glow 1.5s ease-in-out infinite alternate, colorChange 3s infinite alternate;
+        display: inline-block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes move {
+        0% { transform: translateX(-10px); }
+        100% { transform: translateX(10px); }
+    }
+
+    @keyframes glow {
+        0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3); }
+        100% { text-shadow: 0 0 20px rgba(255, 0, 255, 1), 0 0 30px rgba(255, 0, 255, 0.6); }
+    }
+
+    @keyframes colorChange {
+        0% { color: blue; }
+        100% { color: green; }
+    }
+
+    /* Animation des boutons */
+    .animated-button {
+        position: relative;
+        overflow: hidden;
+        font-size: 1.2em; /* Taille de police ajustée pour le bouton */
+    }
+
+    .animated-button::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateX(-50%) translateY(-100%);
+        transition: transform 0.4s ease;
+        z-index: 0;
+    }
+
+    .animated-button:hover::after {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .animated-button span {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Animation du lien */
+    .animated-link {
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    .animated-link:hover {
+        color: #3273dc;
+        text-shadow: 0 0 20px rgba(50, 115, 221, 0.5);
+    }
+
+    /* Styles des champs de saisie */
+    .input.is-large {
+        font-size: 1.25em; /* Taille du texte dans les champs */
+        height: 50px; /* Hauteur des champs */
+    }
+
+  /* Animation de transformation et d'échelle des boutons */
+    .button.is-animated {
+        position: relative;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .button.is-animated:hover {
+        transform: scale(1.1) rotate(-2deg); /* Légère rotation et agrandissement */
+        background-color: #ffc3a0;
+    }
+</style>
 {% endblock %}
