@@ -2,27 +2,90 @@
 
 {% block content %}
 <h1 class="title">Vos Fichiers</h1>
-<table class="table is-fullwidth">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Size</th>
-            <th>Upload Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for file in user_files %}
-        <tr>
-            <td>{{ file.name }}</td>
-            <td>{{ file.size }} octets </td>
-            <td>{{ file.upload_date }}</td>
-            <td>
-                <a class="button is-small is-info" href="{{ file.upload.url }}" download>Download</a>
-                <a class="button is-small is-danger" href="{% url 'delete_file' file.id %}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">Delete</a>
-            </td>
-        </tr>
+
+<form action="{% url 'create_folder' %}" method="post" style="margin-bottom: 20px;">
+    {% csrf_token %}
+    <div class="field">
+        <label class="label" for="folder_name">Nom du dossier :</label>
+        <div class="control">
+            <input class="input" type="text" id="folder_name" name="folder_name" placeholder="Entrez le nom du dossier" required>
+        </div>
+    </div>
+    <div class="control">
+        <button class="button is-primary" type="submit">Créer le dossier</button>
+    </div>
+</form>
+<form action="{% url 'upload_file' %}?path={{ current_path }}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="field">
+        <label class="label" for="upload">Fichier à uploader :</label>
+        <div class="control">
+            <input class="input" type="file" id="upload" name="upload" required>
+        </div>
+    </div>
+    <div class="control">
+        <button class="button is-primary" type="submit">Uploader</button>
+    </div>
+</form>
+
+
+{% if form.errors %}
+    <div class="error-messages">
+        {% for field, errors in form.errors.items %}
+            <p><strong>{{ field }}:</strong> {{ errors }}</p>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+{% endif %}
+
+{% if current_path %}
+    {% with current_path|cut:"/" as path_parts %}
+        {% if path_parts|length > 0 %}
+            <a href="?path={{ previous_path }}">Retour</a>
+        {% endif %}
+    {% endwith %}
+{% endif %}
+
+<ul>
+    {% for folder in folders %}
+        <li>
+            <a href="?path={{ folder.path }}">{{ folder.name }}</a>
+            <a class="button is-small is-danger" href="{% url 'delete_folder' %}?path={{ file.path }}&current_path={{ current_path }}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce dossier ?');">Delete</a>
+            <a href="{% url 'rename_folder' %}?path={{ folder.path }}&current_path={{ current_path }}" class="button is-small is-info">Renommer</a>
+            <a href="{% url 'choose_folder' %}?folder_path={{ folder.path }}&type=folder" class="button is-small is-warning">Déplacer</a>
+        </li>
+    {% empty %}
+        <li>Aucun dossier trouvé.</li>
+    {% endfor %}
+</ul>
+
+ {% if files %}
+ <table class="table is-fullwidth">
+     <thead>
+         <tr>
+             <th>Nom</th>
+             <th>Taille</th>
+             <th>Date d'upload</th>
+             <th>Actions</th>
+         </tr>
+     </thead>
+     <tbody>
+         {% for file in files %}
+         <tr>
+             <td>{{ file.name }}</td>
+             <td>{{ file.size }} octets</td>
+             <td>{{ file.upload_date }}</td>
+             <td>
+                <a class="button is-small is-info" href="/uploads/{{ file.path }}" download>Télécharger</a>
+                 <a class="button is-small is-danger" href="{% url 'delete_file' %}?path={{ file.path }}&current_path={{ current_path }}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');">Delete</a>
+                 <a href="{% url 'rename_file' %}?path={{ file.path }}&current_path={{ current_path }}" class="button is-small is-info">Renommer</a>
+                 <a href="{% url 'choose_folder' %}?file_path={{ file.path }}&type=file" class="button is-small is-warning">Déplacer</a>
+             </td>
+         </tr>
+         {% endfor %}
+     </tbody>
+ </table>
+{% else %}
+ <p>Aucun fichier trouvé dans ce dossier.</p>
+{% endif %}
+</div>
 {% endblock %}

@@ -15,7 +15,7 @@ class UserProfile(models.Model):
 
 class Folder(models.Model):
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folders')
     parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subfolders')
     upload_date = models.DateTimeField(auto_now_add=True)
 
@@ -37,8 +37,8 @@ class File(models.Model):
     upload = models.FileField(upload_to=user_directory_path, validators=[validate_file_size])
     size = models.IntegerField()
     upload_date = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='files')
 
     def __str__(self):
         return self.name

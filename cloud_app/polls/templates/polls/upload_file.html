@@ -1,0 +1,34 @@
+{% extends 'polls/base.html' %}
+
+{% block content %}
+<h1 class="title">Upload file</h1>
+<form action="{% url 'upload_file' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="field">
+        <label class="label" for="folder_name">Nom du dossier :</label>
+        <div class="control">
+            <input class="input" type="text" id="folder_name" name="folder_name" placeholder="Entrez le nom du dossier" required>
+        </div>
+    </div>
+    
+    <div class="field">
+        <label class="label" for="upload">Fichier à uploader :</label>
+        <div class="control">
+            <input class="input" type="file" id="upload" name="upload" required>
+        </div>
+    </div>
+    
+    <div class="control">
+        <button class="button is-primary" type="submit">Uploader</button>
+    </div>
+</form>
+
+{% if form.errors %}
+    <div class="error-messages">
+        {% for field, errors in form.errors.items %}
+            <p><strong>{{ field }}:</strong> {{ errors }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% endblock %}
