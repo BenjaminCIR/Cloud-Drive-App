@@ -17,7 +17,8 @@ import shutil
 from datetime import datetime
 from collections import defaultdict
 
-# Create your views here.
+
+# View for the signup page
 def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -29,14 +30,13 @@ def signup_view(request):
         form = UserCreationForm()
     return render(request, 'polls/signup.html', {'form': form})
 
-@login_required
-def home(request):
-#     if request.user.is_authenticated:
-#         user_files = File.objects.filter(user=request.user)
-#     else:
-#         user_files = None
-#     return render(request, 'polls/home.html', {'user_files': user_files})
 
+# Forbid access to the home page if the user is not authenticated
+@login_required
+
+
+# View for the home page
+def home(request):
     base_path = os.path.join('uploads', request.user.username)
     current_path = request.GET.get('path', '')
 
@@ -47,6 +47,7 @@ def home(request):
     folders = []
     files = []
     
+    # Folder and files navigation
     if os.path.exists(full_path):
         for item in os.listdir(full_path):
             item_path = os.path.join(full_path, item)
@@ -61,7 +62,6 @@ def home(request):
                     'upload_date': datetime.fromtimestamp(os.path.getctime(item_path)).strftime('%Y-%m-%d %H:%M:%S'),
                 })
 
-    print(f"Current path: {current_path}")
     return render(request, 'polls/home.html', {
         'folders': folders,
         'files': files,
@@ -70,50 +70,10 @@ def home(request):
     })
 
 
-def success(request):
-    return render(request, 'polls/success.html')
-
-
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = UserCreationForm()
-    return render(request, 'polls/signup.html', {'form': form})
-
-
+# View to upload a file
 def upload_file(request):
-    # if request.method == 'POST':
-    #     form = FileUploadForm(request.POST, request.FILES)
-    #     if form.is_valid():
-    #         new_file_size = request.FILES['upload'].size
-    #         max_file_size = 40 * 1024 * 1024  # 40 Mo limit per file
-    #         max_user_storage = 100 * 1024 * 1024  # 100 Mo limit per user
-            
-    #         user_storage_usage = File.objects.filter(user=request.user).aggregate(total_size=Sum('size'))['total_size'] or 0
-            
-    #         if new_file_size > max_file_size:
-    #             form.add_error('upload', "Le fichier dépasse la taille maximale de 40 Mo.")
-    #         elif user_storage_usage + new_file_size > max_user_storage:
-    #             form.add_error('upload', "La limite totale de stockage de 100 Mo est dépassée.")
-    #         else:
-    #             file_instance = form.save(commit=False)
-    #             file_instance.user = request.user
-    #             file_instance.name = request.FILES['upload'].name
-    #             file_instance.size = new_file_size
-    #             file_instance.save()
-    #             return redirect('./../success')
-    # else:
-    #     form = FileUploadForm()
-
-    # return render(request, 'polls/upload.html', {'form': form})
-
     current_path = request.GET.get('path', '')
-
+    
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -123,26 +83,24 @@ def upload_file(request):
 
             user_storage_usage = File.objects.filter(user=request.user).aggregate(total_size=Sum('size'))['total_size'] or 0
 
+            # Limit the file size and the user storage
             if new_file_size > max_file_size:
-                form.add_error('upload', "Le fichier dépasse la taille maximale de 40 Mo.")
+                form.add_error('upload', "File size exceeds the max size of 40 Mo.")
             elif user_storage_usage + new_file_size > max_user_storage:
-                form.add_error('upload', "La limite totale de stockage de 100 Mo est dépassée.")
+                form.add_error('upload', "The total storage limit of 100 Mo is exceeded.")
             else:
-                # Créer le chemin complet du dossier courant
+                # Create the complete path of the file
                 base_path = os.path.join('uploads', request.user.username, current_path)
 
-                # Créer le dossier si nécessaire
+                # Create the folder if necessary
                 if current_path and not os.path.exists(base_path):
                     os.makedirs(base_path)
 
-                # Sauvegarder le fichier dans le dossier courant
+                # Save the file in the current folder
                 file_instance = form.save(commit=False)
                 file_instance.user = request.user
                 file_instance.size = new_file_size
-
-                # Définir le chemin d'enregistrement du fichier
-                file_instance.upload.name = os.path.join(current_path, file_instance.upload.name)  # Associe le fichier au dossier courant
-
+                file_instance.upload.name = os.path.join(current_path, file_instance.upload.name)
                 file_instance.save()
                 return redirect(f'/polls/?path={current_path}')
     else:
@@ -150,73 +108,48 @@ def upload_file(request):
 
     return render(request, 'polls/', {'form': form})
 
+
+# View to delete a file
 def delete_file(request):
-    # file_to_delete = get_object_or_404(File, id=file_id, user=request.user)
-    
-    # if file_to_delete.upload:
-    #     file_to_delete.upload.delete(save=False)
-    
-    # file_to_delete.delete()
-    
-    # return redirect('./../../')
     current_path = request.GET.get('current_path', '')
     file_path = request.GET.get('path')
     
+    # Delete the file if it exists
     if file_path:
         full_path = file_path
 
         if os.path.exists(full_path):
             os.remove(full_path)
-            print(f"Fichier supprimé : {full_path}")
+            print(f"File deleted : {full_path}")
         else:
-            print(f"Aucun fichier trouvé à cet emplacement : {full_path}")
+            print(f"No files found at this location : {full_path}")
     
     return redirect(f'/polls/?path={current_path}')
 
 
+# View to rename a file
 def rename_file(request):
-    # current_path = request.GET.get('current_path', '')
-    # file_to_rename = get_object_or_404(File, id=file_id, user=request.user)
-
-    # if request.method == 'POST':
-    #     form = RenameFileForm(request.POST, instance=file_to_rename)
-    #     if form.is_valid():
-    #         new_name = form.cleaned_data['name']
-    #         original_file_path = file_to_rename.upload.path
-    #         new_file_path = os.path.join(settings.MEDIA_ROOT, f'uploads/{file_to_rename.user.username}/{new_name}')
-
-    #         if original_file_path != new_file_path:
-    #             os.rename(original_file_path, new_file_path)
-
-    #         file_to_rename.name = new_name 
-    #         file_to_rename.save()
-
-    #         return redirect(f'/polls/?path={current_path}')
-    # else:
-    #     form = RenameFileForm(instance=file_to_rename)
-
-    # return render(request, 'polls/rename_file.html', {'form': form, 'file': file_to_rename})
-
     file_path = request.GET.get('path')
-    current_path = request.GET.get('current_path', '')  # Dossier actuel où se trouve le fichier
+    current_path = request.GET.get('current_path', '')
     
+    # Check if the file path exists
     if not file_path:
         return redirect(f'/polls/?path={current_path}')
     
     old_name = os.path.basename(file_path)
 
-    # Si la requête est en POST, traiter le changement de nom
     if request.method == 'POST':
         new_name = request.POST.get('new_name')
+        # Rename the file if a new name is provided
         if new_name:
             old_file_path = file_path
             new_file_path = os.path.join('uploads', request.user.username, current_path, new_name)
-
             if os.path.exists(old_file_path):
+                # Rename the file by replacing the file path name
                 os.rename(old_file_path, new_file_path)
-                print(f"Fichier renommé de {old_file_path} à {new_file_path}")
+                print(f"File renamed from {old_file_path} to {new_file_path}")
             else:
-                print(f"Le fichier n'existe pas : {old_file_path}")
+                print(f"File does not exist : {old_file_path}")
 
             return redirect(f'/polls/?path={current_path}')
     
@@ -227,62 +160,57 @@ def rename_file(request):
     })
 
 
+# View to move a file
 def move_file(request):
     if request.method == "POST":
         file_path = request.POST.get('path')
         target_folder = request.POST.get('target_folder')
-        print(target_folder)
-        print(target_folder)
-        print(target_folder)
-        print(target_folder)
         
-        # Validation des chemins
+        # Check the file path and the target folder (cannot be undefined)
         if not file_path or target_folder==None:
-            return HttpResponse("Paramètres manquants", status=400)
+            return HttpResponse("Missing parameters", status=400)
 
         current_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
         target_folder_path = os.path.join(settings.MEDIA_ROOT, 'uploads', request.user.username, target_folder)
 
-        # Vérifier les chemins
+        # Check if the source and destination files exist
         if not os.path.exists(current_file_path):
-            return HttpResponse("Fichier non trouvé", status=404)
+            return HttpResponse("File not found", status=404)
         if not os.path.isdir(target_folder_path):
-            return HttpResponse("Répertoire de destination introuvable", status=404)
+            return HttpResponse("Destination directory not found", status=404)
 
-        # Déplacement
+        # Move the file to the target folder
         shutil.move(current_file_path, os.path.join(target_folder_path, os.path.basename(file_path)))
         return redirect(f'/polls/?path={target_folder}')
     else:
-        return HttpResponse("Méthode non autorisée", status=405)
+        return HttpResponse("Unauthorized method", status=405)
 
 
-
+# View to show the statistics
 def statistics(request):
-    # Dossier de stockage des fichiers (à adapter selon votre structure)
-    storage_dir = os.path.join(settings.BASE_DIR, 'storage_root')
+    files_path = os.path.join(settings.MEDIA_ROOT, 'uploads', request.user.username)
     
     # Initialisation des compteurs et données
     file_count_by_type = defaultdict(int)
     storage_usage_by_month = defaultdict(int)
 
-    # Parcours des fichiers
-    for root, _, files in os.walk(storage_dir):
+    # File path
+    for root, _, files in os.walk(files_path):
         for file_name in files:
             file_path = os.path.join(root, file_name)
             
-            # Comptage par type de fichier
-            file_ext = os.path.splitext(file_name)[1].lower()  # Récupère l'extension en minuscule
+            # Files count by type
+            file_ext = os.path.splitext(file_name)[1].lower()
             file_count_by_type[file_ext] += 1
 
-            # Calcul de l'utilisation par mois
+            # Storage usage by month
             file_size = os.path.getsize(file_path)
             creation_time = datetime.fromtimestamp(os.path.getctime(file_path))
-            month_key = creation_time.strftime('%Y-%m')  # Format Année-Mois
+            month_key = creation_time.strftime('%Y-%m')
             storage_usage_by_month[month_key] += file_size
 
-    # Préparation des données pour le template
     file_count_by_type = dict(file_count_by_type)
-    storage_usage_by_month = dict(sorted(storage_usage_by_month.items()))  # Trie par date
+    storage_usage_by_month = dict(sorted(storage_usage_by_month.items()))
 
     return render(request, 'polls/statistics.html', {
         'file_count_by_type': file_count_by_type,
@@ -290,13 +218,15 @@ def statistics(request):
     })
 
 
+# View to create a folder
 def create_folder(request):
     if request.method == 'POST':
         folder_name = request.POST.get('folder_name')
+        # Create the folder if the name is provided
         if folder_name:
             base_path = 'uploads/'
             user_folder_path = os.path.join(base_path, request.user.username, folder_name)
-
+            # Create the folder if it does not exist
             if not os.path.exists(user_folder_path):
                 os.makedirs(user_folder_path)
             else:
@@ -307,44 +237,46 @@ def create_folder(request):
     return render(request, 'home.html')
 
 
+# View to delete a folder
 def delete_folder(request):
     folder_path = request.GET.get('path')
-    print(f"Chemin du dossier : {folder_path}")
+    print(f"Folder path : {folder_path}")
     current_path = request.GET.get('current_path', '')
     base_path = os.path.join('uploads', request.user.username, folder_path)
     
+    # Delete the folder if it exists
     if os.path.exists(base_path):
         shutil.rmtree(base_path)
-        print(f"Dossier et tout son contenu supprimé : {base_path}")
+        print(f"Folder and all its contents deleted : {base_path}")
     else:
-        print(f"Aucun dossier trouvé à cet emplacement : {base_path}")
+        print(f"Folder not found at this location : {base_path}")
 
     return redirect(f'/polls/?path={current_path}')
 
 
-
+# View to rename a folder
 def rename_folder(request):
-    # Récupérer les paramètres 'path' (le chemin du dossier à renommer) et 'current_path' (dossier actuel)
     folder_path = request.GET.get('path')
-    current_path = request.GET.get('current_path', '')  # Dossier actuel où se trouve le dossier
+    current_path = request.GET.get('current_path', '')
     
+    # Check if the folder path exists
     if not folder_path:
         return redirect(f'/polls/?path={current_path}')
     
     old_name = os.path.basename(folder_path)
 
-    # Si la requête est en POST, traiter le changement de nom
     if request.method == 'POST':
         new_name = request.POST.get('new_name')
+        # Rename the folder if a new name is provided
         if new_name:
             old_folder_path = os.path.join('uploads', request.user.username, folder_path)
             new_folder_path = os.path.join('uploads', request.user.username, current_path, new_name)
-
+            # Rename the file by replacing the file path name
             if os.path.exists(old_folder_path):
                 os.rename(old_folder_path, new_folder_path)
-                print(f"Dossier renommé de {old_folder_path} à {new_folder_path}")
+                print(f"Folder renamed from {old_folder_path} to {new_folder_path}")
             else:
-                print(f"Le dossier n'existe pas : {old_folder_path}")
+                print(f"The folder does not exist : {old_folder_path}")
 
             return redirect(f'/polls/?path={current_path}')
     
@@ -355,63 +287,56 @@ def rename_folder(request):
     })
 
 
-
+# View to move a folder
 def move_folder(request):
     if request.method == "POST":
-        folder_path = request.POST.get('path')  # Le chemin du dossier à déplacer
+        folder_path = request.POST.get('path')
         folder_path = os.path.join('uploads', request.user.username, folder_path)
-        target_folder = request.POST.get('target_folder')  # Le répertoire de destination
+        target_folder = request.POST.get('target_folder')
         target_folder = os.path.join('uploads', request.user.username, target_folder)
-        
-        print(f"Chemin du fichier : {folder_path}")
-        print(f"Répertoire de destination : {target_folder}")
 
+        # Check the file path and the target folder (cannot be undefined)
         if not folder_path or target_folder==None:
-            return HttpResponse("Paramètres manquants", status=400)
+            return HttpResponse("Missing parameters", status=400)
 
-        # Obtenez le chemin absolu des dossiers
         current_folder_path = os.path.join(settings.MEDIA_ROOT, folder_path)
-        print(f"Chemin du dossier actuel : {current_folder_path}")
         target_folder_path = os.path.join(settings.MEDIA_ROOT, target_folder)
-        print(f"Chemin du répertoire de destination : {target_folder_path}")
 
-        # Vérifier si le dossier source existe
+        # Check if the source and destination files exist
         if not os.path.isdir(current_folder_path):
-            return HttpResponse("Dossier source non trouvé", status=404)
-
-        # Vérifier si le répertoire cible existe
+            return HttpResponse("Source folder not found ", status=404)
+        
         if not os.path.isdir(target_folder_path):
-            return HttpResponse("Répertoire de destination introuvable", status=404)
+            return HttpResponse("Destination directory not found", status=404)
 
-        # Déplacer le dossier et son contenu
+        # Move the file to the target folder
         try:
             shutil.move(current_folder_path, os.path.join(target_folder_path, os.path.basename(folder_path)))
+            # Redirect to target folder after move
             redirect_target = (target_folder.split('\\'))[len((target_folder.split('\\'))) - 1]
-            return redirect(f'/polls/?path={redirect_target}')  # Rediriger vers le dossier cible après le déplacement
+            return redirect(f'/polls/?path={redirect_target}')
         except Exception as e:
             return HttpResponse(f"Erreur lors du déplacement du dossier: {str(e)}", status=500)
     
     else:
-        return HttpResponse("Méthode non autorisée", status=405)
+        return HttpResponse("Unauthorized method", status=405)
     
 
+# View to choose a folder
 def choose_folder(request):
     move_type = request.GET.get('type')
     file_path = request.GET.get('file_path')
     folder_path = request.GET.get('folder_path')
 
-    print(f"Chemin du fichier : {file_path}")
-    print(f"Chemin du dossier : {folder_path}")
-
+    # Check the move type and the file path
     if move_type == 'file' and file_path:
         parent_path = os.path.dirname(file_path).split('\\')
         parent_folder_name = parent_path[len(parent_path) - 1]
-        print(f"Nom du dossier parent : {parent_folder_name}")
         file_name = os.path.basename(file_path)
         base_path = os.path.join('uploads', request.user.username)
         folders = []
 
-        # Parcours des dossiers disponibles
+        # Browse available folders
         for root, dirs, _ in os.walk(base_path):
             for d in dirs:
                 if(d != parent_folder_name):
@@ -427,29 +352,21 @@ def choose_folder(request):
             'url': 'move_file'
         })
 
+    # Check the move type and the folder path
     if move_type == 'folder' and folder_path:
         parent_path = os.path.dirname(folder_path).split('\\')
         parent_folder_name = parent_path[len(parent_path) - 1]
-        print(f"Nom du dossier parent : {parent_folder_name}")
         folder_name = os.path.basename(folder_path)
-        print(f"Nom du dossier : {folder_name}")
-        print(f"Chemin du dossier : {folder_path}")
         base_path = os.path.join('uploads', request.user.username)
         folders = []
 
-        # Parcours des dossiers disponibles
+        # Browse available folders
         for root, dirs, _ in os.walk(base_path):
             for d in dirs:
-                print(f"1" + base_path)
-                print(f"oui" + os.path.basename(folder_path))
-                print(f"2" + os.path.join(base_path, os.path.basename(folder_path)))
-                #is_child = target_folder_path.startswith(os.path.join(base_path, os.path.basename(folder_path)))
-                #print(f"Chemin du dossier cible : {is_child}")
                 if(d != folder_name and d != parent_folder_name):
-                        
-                        target_folder_path = os.path.join(root, d)
-                        relative_folder_path = os.path.relpath(target_folder_path, base_path)
-                        folders.append({'name': d, 'path': relative_folder_path})
+                    target_folder_path = os.path.join(root, d)
+                    relative_folder_path = os.path.relpath(target_folder_path, base_path)
+                    folders.append({'name': d, 'path': relative_folder_path})
 
         return render(request, 'polls/choose_folder.html', {
             'path': folder_path,

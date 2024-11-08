@@ -7,13 +7,13 @@
 <p><strong>Total:</strong> {{ total_storage_usage|floatformat:2 }} octets</p>
 
 <div class="columns is-desktop">
-    <!-- Graphique en donut pour le nombre de fichiers par type -->
+    <!-- Donut chart for number of files by type -->
     <div class="column is-half">
         <div class="card has-background-link-light" 
              data-file-type-labels="{{ file_count_by_type.keys|join:',' }}" 
              data-file-type-counts="{{ file_count_by_type.values|join:',' }}">
             <header class="card-header has-background-link">
-                <p class="card-header-title has-text-white">Nombre de fichiers par type</p>
+                <p class="card-header-title has-text-white">File count by type</p>
             </header>
             <div class="card-content">
                 <canvas id="fileTypeChart" width="400" height="200"></canvas>
@@ -21,13 +21,13 @@
         </div>
     </div>
 
-    <!-- Graphique en barres pour l'utilisation du stockage par mois -->
+    <!-- Bar graph of storage usage by month -->
     <div class="column is-half">
         <div class="card has-background-link-light" 
              data-storage-labels="{{ storage_usage_by_month.keys|join:',' }}" 
              data-storage-data="{{ storage_usage_by_month.values|join:',' }}">
             <header class="card-header has-background-link">
-                <p class="card-header-title has-text-white">Utilisation du stockage par mois</p>
+                <p class="card-header-title has-text-white">Storage usage by month</p>
             </header>
             <div class="card-content">
                 <canvas id="storageUsageChart" width="400" height="200"></canvas>
@@ -40,7 +40,6 @@
 
 {% block extra_js %}
 <script>
-    // Récupération des données de types de fichiers et de stockage depuis les attributs data-* de l'HTML
     const fileTypeElement = document.querySelector('.column.is-half[data-file-type-labels]');
     const fileTypeLabels = fileTypeElement.dataset.fileTypeLabels.split(',');
     const fileTypeCounts = fileTypeElement.dataset.fileTypeCounts.split(',').map(Number);
@@ -49,28 +48,28 @@
     const storageLabels = storageElement.dataset.storageLabels.split(',');
     const storageData = storageElement.dataset.storageData.split(',').map(Number);
     
-    // Donut chart pour le nombre de fichiers par type
+    // Donut chart for the file count by type
     const ctx = document.getElementById('fileTypeChart').getContext('2d');
     new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: fileTypeLabels,
             datasets: [{
-                label: 'Nombre de fichiers',
+                label: 'File count by type',
                 data: fileTypeCounts,
                 backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
             }]
         },
     });
 
-    // Bar chart pour l'utilisation du stockage par mois
+    // Bar chart for the storage usage by month
     const ctx2 = document.getElementById('storageUsageChart').getContext('2d');
     new Chart(ctx2, {
         type: 'bar',
         data: {
             labels: storageLabels,
             datasets: [{
-                label: 'Utilisation de stockage (octets)',
+                label: 'Storage usage (octets)',
                 data: storageData,
                 backgroundColor: '#36A2EB',
             }]

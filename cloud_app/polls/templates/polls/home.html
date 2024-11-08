@@ -7,7 +7,7 @@
     <h2 class="subtitle has-text-centered">{{ current_path }}</h2>
 
     <div class="box">
-        <!-- Formulaire de création de dossier -->
+        <!-- Folder creation form -->
         <form action="{% url 'create_folder' %}" method="post" style="margin-bottom: 20px;">
             {% csrf_token %}
             <div class="field">
@@ -21,7 +21,7 @@
             </div>
         </form>
 
-        <!-- Formulaire d'upload de fichier -->
+        <!-- File creation form -->
         <form action="{% url 'upload_file' %}?path={{ current_path }}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="field">
@@ -36,7 +36,7 @@
         </form>
     </div>
 
-    <!-- Messages d'erreur -->
+    <!-- Error message -->
     {% if form.errors %}
         <div class="notification is-danger">
             {% for field, errors in form.errors.items %}
@@ -45,7 +45,7 @@
         </div>
     {% endif %}
 
-    <!-- Navigation vers le répertoire parent -->
+    <!-- Navigate to parent directory -->
     {% if current_path %}
         {% with current_path|cut:"/" as path_parts %}
             {% if path_parts|length > 0 %}
@@ -54,17 +54,17 @@
         {% endwith %}
     {% endif %}
 
-    <!-- Liste des dossiers -->
+    <!-- Folders list -->
     <ul style="margin-top: 20px;">
         {% for folder in folders %}
             <li class="box" style="margin-bottom: 10px;">
                 <div class="columns is-vcentered">
-                    <!-- Nom du dossier avec lien -->
+                    <!-- Folder name -->
                     <div class="column is-half">
                         <a href="?path={{ folder.path }}" class="has-text-weight-bold">{{ folder.name }}</a>
                     </div>
                     
-                    <!-- Boutons d'action alignés -->
+                    <!-- Folders ction buttons -->
                     <div class="column has-text-right">
                         <a class="button is-small is-danger" href="{% url 'delete_folder' %}?path={{ folder.path }}" onclick="return confirm('Are you sure you want to delete this folder?');">Delete</a>
                         <a class="button is-small is-info" href="{% url 'rename_folder' %}?path={{ folder.path }}&current_path={{ current_path }}">Rename</a>
@@ -78,7 +78,7 @@
     </ul>
 
 
-    <!-- Tableau des fichiers -->
+    <!-- Files tab -->
     {% if files %}
         <table class="table is-fullwidth" style="margin-top: 20px;">
             <thead>
@@ -92,9 +92,11 @@
             <tbody>
                 {% for file in files %}
                     <tr>
+                        <!-- Files data -->
                         <td> {{ file.name|slice:":20" }}{% if file.name|length > 20 %}...{% endif %} </td>
                         <td>{{ file.size }} octets</td>
                         <td>{{ file.upload_date }}</td>
+                        <!-- Folders action buttons -->
                         <td>
                             <a class="button is-small is-info" href="/uploads/{{ file.path }}" download>Download</a>
                             <a class="button is-small is-danger" href="{% url 'delete_file' %}?path={{ file.path }}" onclick="return confirm('Are you sure you want to delete this file?');">Delete</a>

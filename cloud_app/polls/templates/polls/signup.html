@@ -39,7 +39,7 @@
 </div>
 
 <style>
-    /* Animations de la carte */
+    /* Card animation */
     .animated-card {
         transition: transform 0.5s ease, box-shadow 0.5s ease;
     }
@@ -48,12 +48,12 @@
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     }
 
-    /* Animation et effet du titre */
+    /* Animation and title effect */
     .animated-title {
         color: #3273dc;
         text-shadow: 0 0 8px rgba(50, 115, 221, 0.8);
         animation: neonText 1.5s ease infinite, moveText 2s linear infinite;
-        text-align: center; /* Centrer le texte */
+        text-align: center;
     }
     @keyframes neonText {
         0%, 100% {
@@ -75,17 +75,19 @@
         }
     }
 
-    /* Animation des boutons */
+    /* Button animation */
     .animated-button {
         position: relative;
         overflow: hidden;
-        font-size: 1.2em; /* Taille du texte dans le bouton */
+        font-size: 1.2em;
         color: white;
         transition: background-color 0.3s ease;
     }
+
     .animated-button:hover {
         background-color: #5cb85c;
     }
+
     .animated-button::after {
         content: '';
         position: absolute;
@@ -97,49 +99,47 @@
         transform: skewX(-20deg);
         transition: all 0.4s ease;
     }
+
     .animated-button:hover::after {
         left: 100%;
     }
 
-    /* Animation du lien */
-    .animated-link {
-        transition: color 0.3s ease, text-shadow 0.3s ease;
-    }
-    .animated-link:hover {
-        color: #ff99cc;
-        text-shadow: 0 0 5px rgba(255, 153, 204, 0.8);
-    }
-
-    /* Style des champs de saisie */
-    .input.is-large {
-        font-size: 1.25em;
-        height: 50px;
-    }
-
-    /* Bouton "Sign Up" plus petit mais toujours fluide */
-    .button.is-small {
-        font-size: 1.1em; /* RÃ©duit la taille du bouton */
-        padding: 10px 20px;
-    }
-
-    /* Centrage vertical du titre "Sign Up" */
-    .card-header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 80px;
-        margin-bottom: 10px;
-    }
-
-    /* Animation de transformation et d'échelle des boutons */
     .button.is-animated {
         position: relative;
         transition: transform 0.3s ease, background-color 0.3s ease;
     }
 
     .button.is-animated:hover {
-        transform: scale(1.1) rotate(-2deg); /* Légère rotation et agrandissement */
+        transform: scale(1.1) rotate(-2deg);
         background-color: #ffc3a0;
+    }
+
+    /* Link animation */
+    .animated-link {
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    
+    .animated-link:hover {
+        color: #ff99cc;
+        text-shadow: 0 0 5px rgba(255, 153, 204, 0.8);
+    }
+
+    .input.is-large {
+        font-size: 1.25em;
+        height: 50px;
+    }
+
+    .button.is-small {
+        font-size: 1.1em;
+        padding: 10px 20px;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;
+        margin-bottom: 10px;
     }
 </style>
 {% endblock %}

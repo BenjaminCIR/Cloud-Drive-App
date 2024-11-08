@@ -8,7 +8,6 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='polls/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('statistics/', views.statistics, name='statistics'),
-    path('success/', views.success, name='success'),
     path('upload_file/', views.upload_file, name='upload_file'),
     path('delete_file/', views.delete_file, name='delete_file'),
     path('rename_file/', views.rename_file, name='rename_file'),

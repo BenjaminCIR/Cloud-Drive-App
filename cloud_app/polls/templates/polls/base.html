@@ -7,29 +7,34 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Button animation */
         .button.is-animated {
             position: relative;
             transition: transform 0.3s ease, background-color 0.3s ease;
         }
 
         .button.is-animated:hover {
-            transform: scale(1.1) rotate(-2deg); /* Légère rotation et agrandissement */
+            transform: scale(1.1) rotate(-2deg); 
             background-color: #ffc3a0;
         }
+
+        /* Navbar */
         .navbar {
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
             padding: 10px;
         }
+
         .navbar-menu {
             display: flex;
             justify-content: center;
         }
+
         .navbar-item.button {
-            margin: 0 15px; /* Espacement entre les boutons */
+            margin: 0 15px;
         }
-        /* Animation de "pulse" pour les liens */
+        
         .navbar-item.button:hover {
             animation: pulse 1.5s infinite;
         }
